@@ -1,5 +1,9 @@
 # 1. Making yaml for Persistence volume
 ```
+PS D:\k8s\deployment> kubectl.exe get sc
+NAME                 PROVISIONER                RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+standard (default)   k8s.io/minikube-hostpath   Delete          Immediate           false                  46h
+
 PS D:\k8s\volume> cat .\nginx-pv.yaml
 apiVersion: v1
 kind: PersistentVolume
@@ -48,34 +52,9 @@ NAME                                 STATUS   VOLUME        CAPACITY   ACCESS MO
 persistentvolumeclaim/hostpath-pvc   Bound    hostpath-pv   1Gi        RWO            standard       22s
 ```
 
-# 3. Login into minikube-m02 and create the config file for nginx
-```
-PS C:\Users\developer> minikube.exe node list
-minikube        192.168.99.100
-minikube-m02    192.168.99.101
 
-PS C:\Users\developer> ssh docker@192.168.99.101
-docker@192.168.99.101's password: tcuser
 
-$ cat /tmp/data/default.conf
-upstream proxy.com {
-        server 172.17.0.3:5001;
-}
-
-server {
-        listen 80;
-        server_name localhost;
-        location / {
-                root /usr/share/nginx/html;
-                index index.html index.htm;
-                proxy_pass https://proxy.com;
-        }
-}
-
-$ exit
-```
-
-# 4. Create the yaml for deployment of mongodb and run it
+# 3. Create the yaml for deployment of mongodb and run it
 ```
 PS D:\k8s\deployment> cat .\mongo_latest.yaml
 
@@ -156,7 +135,7 @@ Events:
   
 ```
 
-# 5. Create the yaml for deployment of employee and run it
+# 4. Create the yaml for deployment of employee and run it
 ```
 PS D:\k8s\deployment> cat .\employee_latest.yaml
 
@@ -244,7 +223,7 @@ Events:
   Normal  Started    19m   kubelet            Started container employee
 ```
 
-# 6. Check the web func works well through curl
+# 5. Check the web func works well through curl
 ```
 PS D:\k8s\deployment> kubectl.exe exec -it pod/mongo-test-8974576b4-jzg25 /bin/bash
 kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
@@ -317,6 +296,33 @@ root@mongo-test-8974576b4-jzg25:/# curl https://172.17.0.3:5001 -k
 
 </body>
 </html>
+```
+
+# 6. Login into minikube-m02 and create the config file for nginx
+```
+PS C:\Users\developer> minikube.exe node list
+minikube        192.168.99.100
+minikube-m02    192.168.99.101
+
+PS C:\Users\developer> ssh docker@192.168.99.101
+docker@192.168.99.101's password: tcuser
+
+$ cat /tmp/data/default.conf
+upstream proxy.com {
+        server 172.17.0.3:5001;
+}
+
+server {
+        listen 80;
+        server_name localhost;
+        location / {
+                root /usr/share/nginx/html;
+                index index.html index.htm;
+                proxy_pass https://proxy.com;
+        }
+}
+
+$ exit
 ```
 
 # 7. Create the yaml for deployment of nginx and run it
