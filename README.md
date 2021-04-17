@@ -187,10 +187,139 @@ spec:
 
 PS D:\k8s\deployment> kubectl.exe create -f .\employee_latest.yaml
 deployment.apps/employee-test created
+
+PS D:\k8s\deployment> kubectl.exe describe pod employee-test
+Name:         employee-test-85f866c989-g7f2x
+Namespace:    default
+Priority:     0
+Node:         minikube-m02/192.168.99.101
+Start Time:   Sat, 17 Apr 2021 20:03:33 +0900
+Labels:       pod-template-hash=85f866c989
+              run=employee-test
+Annotations:  <none>
+Status:       Running
+IP:           172.17.0.3
+IPs:
+  IP:           172.17.0.3
+Controlled By:  ReplicaSet/employee-test-85f866c989
+Containers:
+  employee:
+    Container ID:  docker://bbb984372627f3733e75daf3519d138b034148b63f9420a2daf4c285f6876d87
+    Image:         developeronizuka/employee
+    Image ID:      docker-pullable://developeronizuka/employee@sha256:ad36f06fcb5aa8d4da7dc36ac9bf42223617c3330e8dfcaef1b5a30ba9f71084
+    Ports:         5001/TCP, 5000/TCP
+    Host Ports:    0/TCP, 0/TCP
+    Command:
+      /usr/local/dotnet/publish/Employee
+    State:          Running
+      Started:      Sat, 17 Apr 2021 20:03:43 +0900
+    Ready:          True
+    Restart Count:  0
+    Environment:
+      MONGO:  172.17.0.2
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-cjxcb (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-cjxcb:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-cjxcb
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  19m   default-scheduler  Successfully assigned default/employee-test-85f866c989-g7f2x to minikube-m02
+  Normal  Pulling    19m   kubelet            Pulling image "developeronizuka/employee"
+  Normal  Pulled     19m   kubelet            Successfully pulled image "developeronizuka/employee" in 8.492547907s
+  Normal  Created    19m   kubelet            Created container employee
+  Normal  Started    19m   kubelet            Started container employee
 ```
 
+# 6. Check the web func works well through curl
+```
+PS D:\k8s\deployment> kubectl.exe exec -it pod/mongo-test-8974576b4-jzg25 /bin/bash
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
 
-# 6. Create the yaml for deployment of employee and run it
+root@mongo-test-8974576b4-jzg25:/# echo "nameserver 8.8.8.8" | tee /etc/resolv.conf > /dev/null
+root@mongo-test-8974576b4-jzg25:/# apt-get update -qq && apt install curl
+root@mongo-test-8974576b4-jzg25:/# curl https://172.17.0.3:5001 -k
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title> - Employee</title>
+    <link rel="stylesheet" href="/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/css/site.css" />
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
+            <div class="container">
+                <a class="navbar-brand" href="/">Employee</a>
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
+                        aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
+                    <ul class="navbar-nav flex-grow-1">
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-dark" href="/Home/Privacy">Privacy</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+
+<h1>List of Employees</h1>
+
+<h2></h2>
+
+<a href="/Home/Insert"> Add New Employee</a>
+
+<br /><br />
+
+
+<table border="1" cellpadding="10">
+</table>
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+
+        </main>
+    </div>
+
+    <footer class="border-top footer text-muted">
+        <div class="container">
+            &copy; 2020 - Employee - <a href="/Home/Privacy">Privacy</a>
+        </div>
+    </footer>
+    <script src="/lib/jquery/dist/jquery.min.js"></script>
+    <script src="/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/site.js"></script>
+
+</body>
+</html>
+```
+
+# 7. Create the yaml for deployment of nginx and run it
 ```
 PS D:\k8s\deployment> cat .\ngingx_1.14.2.yaml
 
@@ -220,4 +349,36 @@ spec:
       - name: nginx-conf
         persistentVolumeClaim:
          claimName: hostpath-pvc
+
+PS D:\k8s\deployment> kubectl.exe create -f .\ngingx_1.14.2.yaml
+deployment.apps/nginx-test created
+
+PS D:\k8s\deployment> kubectl.exe expose deployment nginx-test --type=LoadBalancer
+service/nginx-test exposed
+
+PS D:\k8s\deployment> kubectl.exe get all
+NAME                                 READY   STATUS    RESTARTS   AGE
+pod/employee-test-85f866c989-g7f2x   1/1     Running   0          23m
+pod/mongo-test-8974576b4-jzg25       1/1     Running   0          26m
+pod/nginx-test-695c6675f5-pfm78      1/1     Running   0          77s
+
+NAME                 TYPE           CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+service/kubernetes   ClusterIP      10.96.0.1        <none>        443/TCP        46h
+service/nginx-test   LoadBalancer   10.107.127.225   <pending>     80:30165/TCP   53s
+
+NAME                            READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/employee-test   1/1     1            1           23m
+deployment.apps/mongo-test      1/1     1            1           26m
+deployment.apps/nginx-test      1/1     1            1           77s
+
+NAME                                       DESIRED   CURRENT   READY   AGE
+replicaset.apps/employee-test-85f866c989   1         1         1       23m
+replicaset.apps/mongo-test-8974576b4       1         1         1       26m
+replicaset.apps/nginx-test-695c6675f5      1         1         1       77s
+```
+
+# 8. Create the yaml for deployment of nginx and run it
+```
+Acess the minikube-m02's IP address and the port nubmer which is written in the output of "kubectl get all".
+In my case, http://192.168.99.101:30165 is target address and port.
 ```
