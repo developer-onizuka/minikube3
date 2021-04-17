@@ -223,7 +223,7 @@ Events:
   Normal  Started    19m   kubelet            Started container employee
 ```
 
-# 5. Check the web func works well through curl
+# 5. Check if the web func works well through curl
 ```
 PS D:\k8s\deployment> kubectl.exe exec -it pod/mongo-test-8974576b4-jzg25 /bin/bash
 kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl exec [POD] -- [COMMAND] instead.
